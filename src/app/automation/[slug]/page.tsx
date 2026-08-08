@@ -256,6 +256,8 @@ export default async function AutomationPage({
                 {guide.template_url && (
                   <a
                     href={guide.template_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-block border border-pistachio px-4 py-2 text-sm text-premium-black hover:bg-pistachio/10"
                   >
                     Download template
@@ -289,6 +291,8 @@ export default async function AutomationPage({
                       resource.url && (
                         <a
                           href={resource.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="mt-2 inline-block text-sm text-pistachio underline"
                         >
                           Open resource
@@ -332,6 +336,8 @@ export default async function AutomationPage({
                   <li key={related.id}>
                     <Link
                       href={`/automation/${related.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="block border border-light-grey-bg px-4 py-3 hover:border-pistachio"
                     >
                       {related.title}
@@ -349,6 +355,8 @@ export default async function AutomationPage({
               </h2>
               <Link
                 href={`/automation/${guide.next_step.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="mt-3 block border border-pistachio px-4 py-3 text-premium-black hover:bg-pistachio/10"
               >
                 {guide.next_step.title} &rarr;

@@ -76,6 +76,8 @@ function ProcessRow({
                   <li key={automation.id}>
                     <Link
                       href={`/automation/${automation.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="block border border-light-grey-bg bg-white px-4 py-3 transition-colors hover:border-pistachio"
                     >
                       {automation.tool_platform && (

@@ -7,7 +7,7 @@ export default async function Home() {
   const phases = await getPhaseTree();
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-16">
+    <div className="mx-auto w-full max-w-[100rem] px-6 py-16">
       <p className="font-mono text-xs uppercase tracking-widest text-pistachio">
         StackNarrative
       </p>

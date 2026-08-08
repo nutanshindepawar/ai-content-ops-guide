@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronRight, GitBranch, Lightbulb, Star } from "lucide-react";
 import type { PhaseWithProcesses } from "@/lib/types/content";
@@ -22,7 +22,7 @@ function PhaseCard({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex w-44 shrink-0 flex-col items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
+      className={`flex w-28 shrink-0 flex-col items-start gap-2 rounded-lg border p-2.5 text-left transition-colors ${
         active
           ? "border-pistachio bg-pistachio"
           : "border-warm-grey/20 bg-white hover:border-pistachio"
@@ -30,20 +30,20 @@ function PhaseCard({
     >
       <div className="flex w-full items-center justify-between">
         <span
-          className={`flex h-9 w-9 items-center justify-center rounded-full ${
+          className={`flex h-7 w-7 items-center justify-center rounded-full ${
             active ? "bg-white/20" : "bg-pistachio/15"
           }`}
         >
           {Icon && (
             <Icon
-              size={18}
+              size={14}
               className={active ? "text-white" : "text-pistachio"}
               strokeWidth={2}
             />
           )}
         </span>
         <span
-          className={`font-mono text-xs ${
+          className={`font-mono text-[10px] ${
             active ? "text-white/80" : "text-warm-grey"
           }`}
         >
@@ -51,7 +51,7 @@ function PhaseCard({
         </span>
       </div>
       <span
-        className={`font-sans text-base font-semibold leading-snug ${
+        className={`font-sans text-xs font-semibold leading-tight ${
           active ? "text-white" : "text-premium-black"
         }`}
       >
@@ -94,6 +94,8 @@ function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][n
               <li key={automation.id}>
                 <Link
                   href={`/automation/${automation.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="block rounded-lg border border-warm-grey/20 bg-white px-3 py-2 text-sm transition-colors hover:border-pistachio"
                 >
                   {automation.tool_platform && (
@@ -218,23 +220,59 @@ export function PhaseHorizontalBrowser({
 }) {
   const [activePhaseId, setActivePhaseId] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState({ width: 100, left: 0 });
 
   const activePhase = phases.find((p) => p.id === activePhaseId) ?? null;
 
-  function scrollForward() {
-    scrollerRef.current?.scrollBy({ left: 260, behavior: "smooth" });
+  function updateScrollState() {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 4);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 4);
+    setScrollProgress({
+      width: Math.min(100, (clientWidth / scrollWidth) * 100),
+      left: (scrollLeft / scrollWidth) * 100,
+    });
   }
+
+  useEffect(() => {
+    updateScrollState();
+    const el = scrollerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(updateScrollState);
+    observer.observe(el);
+    window.addEventListener("resize", updateScrollState);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateScrollState);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phases.length]);
+
+  function scrollForward() {
+    scrollerRef.current?.scrollBy({ left: 300, behavior: "smooth" });
+  }
+
+  const isScrollable = canScrollLeft || canScrollRight;
 
   return (
     <div>
       <div className="relative flex items-center gap-3">
-        <div
-          ref={scrollerRef}
-          className="flex gap-3 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {phases.map((phase, i) => (
-            <div key={phase.id} className="flex shrink-0 items-center gap-3">
+        <div className="relative min-w-0 flex-1">
+          {canScrollLeft && (
+            <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-white to-transparent" />
+          )}
+          <div
+            ref={scrollerRef}
+            onScroll={updateScrollState}
+            className="flex gap-2 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {phases.map((phase) => (
               <PhaseCard
+                key={phase.id}
                 phase={phase}
                 active={activePhaseId === phase.id}
                 onClick={() =>
@@ -243,24 +281,35 @@ export function PhaseHorizontalBrowser({
                   )
                 }
               />
-              {i < phases.length - 1 && (
-                <ChevronRight
-                  size={18}
-                  className="shrink-0 text-warm-grey/50"
-                />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
+          {canScrollRight && (
+            <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-white to-transparent" />
+          )}
         </div>
-        <button
-          type="button"
-          onClick={scrollForward}
-          aria-label="Scroll phases"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-warm-grey/20 bg-white hover:border-pistachio"
-        >
-          <ChevronRight size={16} className="text-premium-black" />
-        </button>
+        {isScrollable && (
+          <button
+            type="button"
+            onClick={scrollForward}
+            aria-label="Scroll phases"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-warm-grey/20 bg-white hover:border-pistachio"
+          >
+            <ChevronRight size={16} className="text-premium-black" />
+          </button>
+        )}
       </div>
+
+      {isScrollable && (
+        <div className="mt-1 h-0.5 w-full bg-warm-grey/15">
+          <div
+            className="h-full bg-pistachio transition-[width,margin-left]"
+            style={{
+              width: `${scrollProgress.width}%`,
+              marginLeft: `${scrollProgress.left}%`,
+            }}
+          />
+        </div>
+      )}
 
       {activePhase && <PhasePanel phase={activePhase} />}
     </div>
