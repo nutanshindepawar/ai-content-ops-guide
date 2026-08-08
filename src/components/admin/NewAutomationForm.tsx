@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RichTextField } from "@/components/admin/RichTextField";
 import { FileUploadField } from "@/components/FileUploadField";
-import { createAutomation, type NewAutomationInput } from "@/app/admin/new/actions";
+import { createAutomation, type NewAutomationInput } from "@/app/admin/(dashboard)/new/actions";
 
 type PhaseOption = {
   id: string;
