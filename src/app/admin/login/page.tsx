@@ -1,18 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { BASE_PATH } from "@/lib/base-path";
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle"
   );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get("error") === "auth") {
+      setStatus("error");
+      setErrorMessage(
+        "That link was invalid, expired, or already used. Request a new one below — and click it in this same browser you're in right now."
+      );
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("sending");
+    setErrorMessage(null);
 
     const supabase = createBrowserSupabaseClient();
     const { error } = await supabase.auth.signInWithOtp({
@@ -22,7 +35,12 @@ export default function AdminLoginPage() {
       },
     });
 
-    setStatus(error ? "error" : "sent");
+    if (error) {
+      setStatus("error");
+      setErrorMessage(error.message);
+    } else {
+      setStatus("sent");
+    }
   }
 
   return (
@@ -61,11 +79,19 @@ export default function AdminLoginPage() {
           </button>
           {status === "error" && (
             <p className="text-sm text-red-600">
-              Something went wrong sending the link. Try again.
+              {errorMessage ?? "Something went wrong sending the link. Try again."}
             </p>
           )}
         </form>
       )}
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminLoginForm />
+    </Suspense>
   );
 }
