@@ -1,9 +1,48 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getAutomationBySlug } from "@/lib/content";
 import { SafeHtml } from "@/components/SafeHtml";
 
 export const revalidate = 60;
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const automation = await getAutomationBySlug(slug);
+
+  if (!automation) {
+    return { title: "Not found | StackNarrative" };
+  }
+
+  const description = automation.guide?.what_it_does
+    ? stripHtml(automation.guide.what_it_does).slice(0, 160)
+    : `${automation.title} — a step-by-step AI automation guide from the B2B AI Content Operations Guide.`;
+
+  const title = `${automation.title} | B2B AI Content Operations Guide`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "article",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
+  };
+}
 
 function MetaTag({ label, value }: { label: string; value: string }) {
   return (
