@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAutomationBySlug } from "@/lib/content";
+import { SafeHtml } from "@/components/SafeHtml";
 
 export const revalidate = 60;
 
@@ -138,17 +139,17 @@ export default async function AutomationPage({
           {/* Body intro */}
           {guide.what_it_does && (
             <Section title="What it does">
-              <p>{guide.what_it_does}</p>
+              <SafeHtml html={guide.what_it_does} />
             </Section>
           )}
           {guide.why_useful && (
             <Section title="Why it's useful">
-              <p>{guide.why_useful}</p>
+              <SafeHtml html={guide.why_useful} />
             </Section>
           )}
           {guide.who_for && (
             <Section title="Who it's for">
-              <p>{guide.who_for}</p>
+              <SafeHtml html={guide.who_for} />
             </Section>
           )}
 
@@ -193,7 +194,7 @@ export default async function AutomationPage({
 
           {guide.example && (
             <Section title="Example">
-              <p className="whitespace-pre-line">{guide.example}</p>
+              <SafeHtml html={guide.example} />
             </Section>
           )}
 
@@ -263,17 +264,17 @@ export default async function AutomationPage({
 
           {guide.common_mistakes && (
             <Section title="Common mistakes">
-              <p>{guide.common_mistakes}</p>
+              <SafeHtml html={guide.common_mistakes} />
             </Section>
           )}
           {guide.human_review && (
             <Section title="Human review">
-              <p>{guide.human_review}</p>
+              <SafeHtml html={guide.human_review} />
             </Section>
           )}
           {guide.troubleshooting && (
             <Section title="Troubleshooting">
-              <p>{guide.troubleshooting}</p>
+              <SafeHtml html={guide.troubleshooting} />
             </Section>
           )}
         </>

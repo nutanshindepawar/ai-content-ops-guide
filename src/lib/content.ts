@@ -3,7 +3,7 @@ import type { PhaseWithProcesses } from "@/lib/types/content";
 import type { AutomationDetail, WorkflowStep } from "@/lib/types/guide";
 
 export async function getPhaseTree(): Promise<PhaseWithProcesses[]> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data, error } = await supabase
     .from("phases")
@@ -42,7 +42,7 @@ export async function getPhaseTree(): Promise<PhaseWithProcesses[]> {
 export async function getAutomationBySlug(
   slug: string
 ): Promise<AutomationDetail | null> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data, error } = await supabase
     .from("automations")
