@@ -160,11 +160,13 @@ site_url = "https://stacknarrative.com/AI-content-ops-guide"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
+# Wildcarded (**) because our actual redirect includes a ?next=... query
+# string, which fails a literal exact-match against the bare callback URL.
 additional_redirect_urls = [
-  "http://127.0.0.1:3000/AI-content-ops-guide/auth/callback",
-  "http://localhost:3000/AI-content-ops-guide/auth/callback",
-  "https://ai-content-ops-guide.vercel.app/AI-content-ops-guide/auth/callback",
-  "https://stacknarrative.com/AI-content-ops-guide/auth/callback",
+  "http://127.0.0.1:3000/AI-content-ops-guide/auth/callback**",
+  "http://localhost:3000/AI-content-ops-guide/auth/callback**",
+  "https://ai-content-ops-guide.vercel.app/AI-content-ops-guide/auth/callback**",
+  "https://stacknarrative.com/AI-content-ops-guide/auth/callback**",
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
