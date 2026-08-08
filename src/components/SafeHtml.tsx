@@ -1,4 +1,4 @@
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 
 export function SafeHtml({
   html,
@@ -7,23 +7,7 @@ export function SafeHtml({
   html: string;
   className?: string;
 }) {
-  const clean = DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      "p",
-      "br",
-      "strong",
-      "em",
-      "h3",
-      "ul",
-      "ol",
-      "li",
-      "pre",
-      "code",
-      "blockquote",
-      "a",
-    ],
-    ALLOWED_ATTR: ["href", "target", "rel"],
-  });
+  const clean = sanitizeHtml(html);
 
   return (
     <div

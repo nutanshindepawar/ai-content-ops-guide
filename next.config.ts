@@ -20,10 +20,6 @@ const nextConfig: NextConfig = {
       ],
     },
   },
-  // isomorphic-dompurify's jsdom dependency breaks when Turbopack bundles it
-  // for the serverless function (ESM/CJS interop error at runtime). Keeping
-  // it external forces Node's native require, which resolves correctly.
-  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
 };
 
 export default nextConfig;
