@@ -1,5 +1,5 @@
 import { getPhaseTree } from "@/lib/content";
-import { PhaseAccordion } from "@/components/PhaseAccordion";
+import { PhaseHorizontalBrowser } from "@/components/PhaseHorizontalBrowser";
 
 export const revalidate = 60;
 
@@ -7,8 +7,8 @@ export default async function Home() {
   const phases = await getPhaseTree();
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-6 py-20">
-      <p className="font-mono text-xs uppercase tracking-widest text-warm-grey">
+    <div className="mx-auto w-full max-w-6xl px-6 py-16">
+      <p className="font-mono text-xs uppercase tracking-widest text-pistachio">
         StackNarrative
       </p>
       <h1 className="mt-3 max-w-2xl font-serif text-4xl text-premium-black sm:text-5xl">
@@ -19,8 +19,8 @@ export default async function Home() {
         step-by-step guide.
       </p>
 
-      <div className="mt-12">
-        <PhaseAccordion phases={phases} />
+      <div className="mt-10">
+        <PhaseHorizontalBrowser phases={phases} />
       </div>
     </div>
   );
