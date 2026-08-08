@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RichTextField } from "@/components/admin/RichTextField";
 import { FileUploadField } from "@/components/FileUploadField";
-import { createAutomation, type NewAutomationInput } from "@/app/admin/(dashboard)/new/actions";
+import {
+  createAutomation,
+  updateAutomation,
+  type NewAutomationInput,
+} from "@/app/admin/(dashboard)/new/actions";
 
 type PhaseOption = {
   id: string;
@@ -47,47 +51,90 @@ function Field({
 const inputClass =
   "w-full border border-light-grey-bg px-3 py-2 text-sm text-premium-black outline-none focus:border-pistachio";
 
-export function NewAutomationForm({
+export type AutomationFormInitial = {
+  automationId: string;
+  processId: string;
+  title: string;
+  toolPlatform: string;
+  lastVerifiedAt: string;
+  whatItDoes: string;
+  whyUseful: string;
+  whoFor: string;
+  difficulty: string;
+  timeRequired: string;
+  toolsRequired: string;
+  prerequisites: string;
+  inputs: string;
+  expectedOutput: string;
+  workflowSteps: { title: string; detail: string }[];
+  example: string;
+  promptInstructions: string;
+  templateUrl: string;
+  commonMistakes: string;
+  humanReview: string;
+  troubleshooting: string;
+  freshnessStatus: string;
+  nextStepId: string;
+  relatedIds: string[];
+  resources: { type: string; title: string; description: string; url: string }[];
+};
+
+export function AutomationForm({
   phases,
   existingAutomations,
+  initial,
 }: {
   phases: PhaseOption[];
   existingAutomations: AutomationOption[];
+  initial?: AutomationFormInitial;
 }) {
   const router = useRouter();
-  const [phaseId, setPhaseId] = useState("");
-  const [processId, setProcessId] = useState("");
-  const [title, setTitle] = useState("");
-  const [toolPlatform, setToolPlatform] = useState("");
+  const isEdit = !!initial;
+
+  const initialPhaseId = initial
+    ? phases.find((p) => p.processes.some((proc) => proc.id === initial.processId))
+        ?.id ?? ""
+    : "";
+
+  const [phaseId, setPhaseId] = useState(initialPhaseId);
+  const [processId, setProcessId] = useState(initial?.processId ?? "");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [toolPlatform, setToolPlatform] = useState(initial?.toolPlatform ?? "");
   const [lastVerifiedAt, setLastVerifiedAt] = useState(
-    new Date().toISOString().slice(0, 10)
+    initial?.lastVerifiedAt ?? new Date().toISOString().slice(0, 10)
   );
 
-  const [whatItDoes, setWhatItDoes] = useState("");
-  const [whyUseful, setWhyUseful] = useState("");
-  const [whoFor, setWhoFor] = useState("");
-  const [difficulty, setDifficulty] = useState("beginner");
-  const [timeRequired, setTimeRequired] = useState("");
-  const [toolsRequired, setToolsRequired] = useState("");
-  const [prerequisites, setPrerequisites] = useState("");
-  const [inputs, setInputs] = useState("");
-  const [expectedOutput, setExpectedOutput] = useState("");
-  const [workflowSteps, setWorkflowSteps] = useState([
-    { title: "", detail: "" },
-  ]);
-  const [example, setExample] = useState("");
-  const [promptInstructions, setPromptInstructions] = useState("");
-  const [templateUrl, setTemplateUrl] = useState("");
-  const [commonMistakes, setCommonMistakes] = useState("");
-  const [humanReview, setHumanReview] = useState("");
-  const [troubleshooting, setTroubleshooting] = useState("");
-  const [freshnessStatus, setFreshnessStatus] = useState("verified");
-  const [nextStepId, setNextStepId] = useState("");
-  const [relatedIds, setRelatedIds] = useState<string[]>([]);
+  const [whatItDoes, setWhatItDoes] = useState(initial?.whatItDoes ?? "");
+  const [whyUseful, setWhyUseful] = useState(initial?.whyUseful ?? "");
+  const [whoFor, setWhoFor] = useState(initial?.whoFor ?? "");
+  const [difficulty, setDifficulty] = useState(initial?.difficulty ?? "beginner");
+  const [timeRequired, setTimeRequired] = useState(initial?.timeRequired ?? "");
+  const [toolsRequired, setToolsRequired] = useState(initial?.toolsRequired ?? "");
+  const [prerequisites, setPrerequisites] = useState(initial?.prerequisites ?? "");
+  const [inputs, setInputs] = useState(initial?.inputs ?? "");
+  const [expectedOutput, setExpectedOutput] = useState(initial?.expectedOutput ?? "");
+  const [workflowSteps, setWorkflowSteps] = useState(
+    initial?.workflowSteps?.length ? initial.workflowSteps : [{ title: "", detail: "" }]
+  );
+  const [example, setExample] = useState(initial?.example ?? "");
+  const [promptInstructions, setPromptInstructions] = useState(
+    initial?.promptInstructions ?? ""
+  );
+  const [templateUrl, setTemplateUrl] = useState(initial?.templateUrl ?? "");
+  const [commonMistakes, setCommonMistakes] = useState(initial?.commonMistakes ?? "");
+  const [humanReview, setHumanReview] = useState(initial?.humanReview ?? "");
+  const [troubleshooting, setTroubleshooting] = useState(initial?.troubleshooting ?? "");
+  const [freshnessStatus, setFreshnessStatus] = useState(
+    initial?.freshnessStatus ?? "verified"
+  );
+  const [nextStepId, setNextStepId] = useState(initial?.nextStepId ?? "");
+  const [relatedIds, setRelatedIds] = useState<string[]>(initial?.relatedIds ?? []);
 
-  const [resources, setResources] = useState([
-    { type: "prompt", title: "", description: "", url: "" },
-  ]);
+  const [resources, setResources] = useState(
+    initial?.resources?.length
+      ? initial.resources
+      : [{ type: "prompt", title: "", description: "", url: "" }]
+  );
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -144,7 +191,9 @@ export function NewAutomationForm({
       resources,
     };
 
-    const result = await createAutomation(input);
+    const result = isEdit
+      ? await updateAutomation(initial.automationId, input)
+      : await createAutomation(input);
     setSubmitting(false);
 
     if (!result.ok) {
@@ -389,11 +438,13 @@ export function NewAutomationForm({
             className={inputClass}
           >
             <option value="">None</option>
-            {existingAutomations.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.title}
-              </option>
-            ))}
+            {existingAutomations
+              .filter((a) => a.id !== initial?.automationId)
+              .map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.title}
+                </option>
+              ))}
           </select>
         </Field>
       </div>
@@ -409,11 +460,13 @@ export function NewAutomationForm({
           }
           className={`${inputClass} min-h-[100px]`}
         >
-          {existingAutomations.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.title}
-            </option>
-          ))}
+          {existingAutomations
+            .filter((a) => a.id !== initial?.automationId)
+            .map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.title}
+              </option>
+            ))}
         </select>
       </Field>
 
@@ -488,7 +541,13 @@ export function NewAutomationForm({
         disabled={submitting}
         className="border border-premium-black bg-premium-black px-6 py-3 text-sm text-white transition-colors hover:bg-soft-charcoal disabled:opacity-50"
       >
-        {submitting ? "Publishing…" : "Publish automation"}
+        {submitting
+          ? isEdit
+            ? "Saving…"
+            : "Publishing…"
+          : isEdit
+            ? "Save changes"
+            : "Publish automation"}
       </button>
     </form>
   );

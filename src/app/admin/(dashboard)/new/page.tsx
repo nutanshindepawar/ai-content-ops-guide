@@ -1,6 +1,6 @@
 import { getPhaseTree } from "@/lib/content";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { NewAutomationForm } from "@/components/admin/NewAutomationForm";
+import { AutomationForm } from "@/components/admin/AutomationForm";
 
 export default async function NewAutomationPage() {
   const phases = await getPhaseTree();
@@ -22,7 +22,7 @@ export default async function NewAutomationPage() {
       </p>
 
       <div className="mt-8">
-        <NewAutomationForm
+        <AutomationForm
           phases={phases.map((p) => ({
             id: p.id,
             name: p.name,

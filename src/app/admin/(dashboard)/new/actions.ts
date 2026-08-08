@@ -1,7 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentEditorOrAdmin } from "@/lib/auth";
+import { BASE_PATH } from "@/lib/base-path";
 
 function slugify(input: string): string {
   return input
@@ -133,6 +135,104 @@ export async function createAutomation(
       }))
     );
   }
+
+  return { ok: true, slug: automation.slug };
+}
+
+export async function updateAutomation(
+  automationId: string,
+  input: NewAutomationInput
+): Promise<{ ok: true; slug: string } | { ok: false; error: string }> {
+  const user = await getCurrentEditorOrAdmin();
+  if (!user) {
+    return { ok: false, error: "Not signed in as an Editor/Admin." };
+  }
+
+  if (!input.title.trim() || !input.process_id) {
+    return { ok: false, error: "Title and process are required." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+
+  const { data: automation, error: automationError } = await supabase
+    .from("automations")
+    .update({
+      process_id: input.process_id,
+      title: input.title.trim(),
+      tool_platform: input.tool_platform.trim() || null,
+      last_verified_at: input.last_verified_at || new Date().toISOString(),
+    })
+    .eq("id", automationId)
+    .select("id, slug")
+    .single();
+
+  if (automationError || !automation) {
+    return {
+      ok: false,
+      error: automationError?.message ?? "Failed to update automation.",
+    };
+  }
+
+  const { error: guideError } = await supabase
+    .from("guides")
+    .update({
+      what_it_does: input.guide.what_it_does || null,
+      why_useful: input.guide.why_useful || null,
+      who_for: input.guide.who_for || null,
+      difficulty: input.guide.difficulty || null,
+      time_required: input.guide.time_required || null,
+      tools_required: input.guide.tools_required || null,
+      prerequisites: input.guide.prerequisites || null,
+      inputs: input.guide.inputs || null,
+      expected_output: input.guide.expected_output || null,
+      workflow_steps: input.guide.workflow_steps.filter((s) => s.title.trim()),
+      example: input.guide.example || null,
+      prompt_instructions: input.guide.prompt_instructions || null,
+      template_url: input.guide.template_url || null,
+      common_mistakes: input.guide.common_mistakes || null,
+      human_review: input.guide.human_review || null,
+      troubleshooting: input.guide.troubleshooting || null,
+      freshness_status: input.guide.freshness_status || "verified",
+      next_step_automation_id: input.guide.next_step_automation_id || null,
+    })
+    .eq("automation_id", automationId);
+
+  if (guideError) {
+    return { ok: false, error: guideError.message };
+  }
+
+  await supabase
+    .from("automation_related")
+    .delete()
+    .eq("automation_id", automationId);
+  if (input.related_automation_ids.length > 0) {
+    await supabase.from("automation_related").insert(
+      input.related_automation_ids.map((relatedId) => ({
+        automation_id: automationId,
+        related_automation_id: relatedId,
+      }))
+    );
+  }
+
+  await supabase.from("resources").delete().eq("automation_id", automationId);
+  const resourcesToInsert = input.resources.filter((r) => r.title.trim());
+  if (resourcesToInsert.length > 0) {
+    await supabase.from("resources").insert(
+      resourcesToInsert.map((r) => ({
+        automation_id: automationId,
+        type: r.type,
+        title: r.title.trim(),
+        description: r.description || null,
+        url: r.url || null,
+        status: "published",
+        created_by: user.id,
+      }))
+    );
+  }
+
+  revalidatePath(`${BASE_PATH}`);
+  revalidatePath(`${BASE_PATH}/automation/${automation.slug}`);
+  revalidatePath(`${BASE_PATH}/admin/automations`);
 
   return { ok: true, slug: automation.slug };
 }
