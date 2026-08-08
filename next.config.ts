@@ -6,6 +6,20 @@ const nextConfig: NextConfig = {
   // proxy (spec §9). Required so every internal link, redirect, and static
   // asset path resolves correctly under that prefix instead of the domain root.
   basePath: BASE_PATH,
+  // Server Actions have built-in CSRF protection that checks the request's
+  // Origin header against the server's own host. The Cloudflare Worker proxy
+  // forwards requests to Vercel with a different Host, so without this every
+  // Server Action call (forms, taxonomy editor) is silently rejected when
+  // accessed through stacknarrative.com.
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        "stacknarrative.com",
+        "ai-content-ops-guide.vercel.app",
+        "localhost:3000",
+      ],
+    },
+  },
 };
 
 export default nextConfig;
