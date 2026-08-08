@@ -28,16 +28,21 @@ const inputClass =
   "w-full border border-light-grey-bg px-3 py-2 text-sm text-premium-black outline-none focus:border-pistachio";
 
 function EditableField({
-  id,
+  name: initialName,
   description,
   oftenOverlooked,
   onSave,
 }: {
-  id: string;
+  name: string;
   description: string | null;
   oftenOverlooked: string | null;
-  onSave: (description: string, oftenOverlooked: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  onSave: (
+    name: string,
+    description: string,
+    oftenOverlooked: string
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
 }) {
+  const [name, setName] = useState(initialName);
   const [desc, setDesc] = useState(description ?? "");
   const [overlooked, setOverlooked] = useState(oftenOverlooked ?? "");
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
@@ -48,7 +53,7 @@ function EditableField({
   async function handleSave() {
     setStatus("saving");
     setError(null);
-    const result = await onSave(desc, overlooked);
+    const result = await onSave(name, desc, overlooked);
     if (result.ok) {
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 1500);
@@ -60,6 +65,12 @@ function EditableField({
 
   return (
     <div className="space-y-2">
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Name"
+        className={`${inputClass} font-serif text-base`}
+      />
       <textarea
         value={desc}
         onChange={(e) => setDesc(e.target.value)}
@@ -140,8 +151,7 @@ function AddProcessForm({
   );
 }
 
-export function TaxonomyEditor({ phases: initialPhases }: { phases: Phase[] }) {
-  const [phases, setPhases] = useState(initialPhases);
+export function TaxonomyEditor({ phases }: { phases: Phase[] }) {
   const [openPhaseId, setOpenPhaseId] = useState<string | null>(null);
 
   return (
@@ -172,14 +182,14 @@ export function TaxonomyEditor({ phases: initialPhases }: { phases: Phase[] }) {
               <div className="mt-4 space-y-6 pl-6">
                 <div>
                   <p className="font-mono text-[11px] uppercase tracking-widest text-warm-grey">
-                    Phase description &amp; often overlooked
+                    Phase name, description &amp; often overlooked
                   </p>
                   <div className="mt-2">
                     <EditableField
-                      id={phase.id}
+                      name={phase.name}
                       description={phase.description}
                       oftenOverlooked={phase.often_overlooked}
-                      onSave={(d, o) => updatePhase(phase.id, d, o)}
+                      onSave={(n, d, o) => updatePhase(phase.id, n, d, o)}
                     />
                   </div>
                 </div>
@@ -194,16 +204,17 @@ export function TaxonomyEditor({ phases: initialPhases }: { phases: Phase[] }) {
                         key={process.id}
                         className="border border-light-grey-bg p-3"
                       >
-                        <p className="text-sm text-premium-black">
-                          {String(process.number).padStart(2, "0")}.{" "}
-                          {process.name}
+                        <p className="font-mono text-[11px] text-warm-grey">
+                          {String(process.number).padStart(2, "0")}
                         </p>
                         <div className="mt-2">
                           <EditableField
-                            id={process.id}
+                            name={process.name}
                             description={process.description}
                             oftenOverlooked={process.often_overlooked}
-                            onSave={(d, o) => updateProcess(process.id, d, o)}
+                            onSave={(n, d, o) =>
+                              updateProcess(process.id, n, d, o)
+                            }
                           />
                         </div>
                       </div>

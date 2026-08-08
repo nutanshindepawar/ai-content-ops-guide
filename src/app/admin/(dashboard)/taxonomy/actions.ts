@@ -17,6 +17,7 @@ type ActionResult = { ok: true } | { ok: false; error: string };
 
 export async function updatePhase(
   phaseId: string,
+  name: string,
   description: string,
   oftenOverlooked: string
 ): Promise<ActionResult> {
@@ -24,11 +25,15 @@ export async function updatePhase(
   if (!user || user.role !== "admin") {
     return { ok: false, error: "Admin only." };
   }
+  if (!name.trim()) {
+    return { ok: false, error: "Name is required." };
+  }
 
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase
     .from("phases")
     .update({
+      name: name.trim(),
       description: description || null,
       often_overlooked: oftenOverlooked || null,
     })
@@ -38,11 +43,13 @@ export async function updatePhase(
 
   revalidatePath(`${BASE_PATH}`);
   revalidatePath(`${BASE_PATH}/admin/taxonomy`);
+  revalidatePath(`${BASE_PATH}/admin/new`);
   return { ok: true };
 }
 
 export async function updateProcess(
   processId: string,
+  name: string,
   description: string,
   oftenOverlooked: string
 ): Promise<ActionResult> {
@@ -50,11 +57,15 @@ export async function updateProcess(
   if (!user || user.role !== "admin") {
     return { ok: false, error: "Admin only." };
   }
+  if (!name.trim()) {
+    return { ok: false, error: "Name is required." };
+  }
 
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase
     .from("processes")
     .update({
+      name: name.trim(),
       description: description || null,
       often_overlooked: oftenOverlooked || null,
     })
@@ -64,6 +75,7 @@ export async function updateProcess(
 
   revalidatePath(`${BASE_PATH}`);
   revalidatePath(`${BASE_PATH}/admin/taxonomy`);
+  revalidatePath(`${BASE_PATH}/admin/new`);
   return { ok: true };
 }
 
