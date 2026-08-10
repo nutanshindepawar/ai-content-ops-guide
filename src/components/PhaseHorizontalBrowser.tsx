@@ -256,11 +256,25 @@ export function PhaseHorizontalBrowser({
     scrollerRef.current?.scrollBy({ left: 300, behavior: "smooth" });
   }
 
+  function scrollBack() {
+    scrollerRef.current?.scrollBy({ left: -300, behavior: "smooth" });
+  }
+
   const isScrollable = canScrollLeft || canScrollRight;
 
   return (
     <div>
       <div className="relative flex items-center gap-3">
+        {canScrollLeft && (
+          <button
+            type="button"
+            onClick={scrollBack}
+            aria-label="Scroll phases backward"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-warm-grey/20 bg-white hover:border-pistachio"
+          >
+            <ChevronRight size={16} className="rotate-180 text-premium-black" />
+          </button>
+        )}
         <div className="relative min-w-0 flex-1">
           {canScrollLeft && (
             <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-white to-transparent" />
