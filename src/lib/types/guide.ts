@@ -24,6 +24,8 @@ export type AutomationDetail = {
   title: string;
   tool_platform: string | null;
   last_verified_at: string | null;
+  contributor_name: string | null;
+  contributor_website: string | null;
   process: {
     slug: string;
     name: string;

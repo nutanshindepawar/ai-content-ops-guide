@@ -236,3 +236,35 @@ export async function updateAutomation(
 
   return { ok: true, slug: automation.slug };
 }
+
+export async function setAutomationStatus(
+  automationId: string,
+  status: "published" | "rejected"
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentEditorOrAdmin();
+  if (!user) {
+    return { ok: false, error: "Not signed in as an Editor/Admin." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("automations")
+    .update({
+      status,
+      reviewed_by: user.id,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", automationId)
+    .select("slug")
+    .single();
+
+  if (error || !data) {
+    return { ok: false, error: error?.message ?? "Failed to update status." };
+  }
+
+  revalidatePath(`${BASE_PATH}`);
+  revalidatePath(`${BASE_PATH}/automation/${data.slug}`);
+  revalidatePath(`${BASE_PATH}/admin/automations`);
+
+  return { ok: true };
+}

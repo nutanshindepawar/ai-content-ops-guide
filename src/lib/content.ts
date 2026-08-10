@@ -49,6 +49,7 @@ export async function getAutomationBySlug(
     .select(
       `
       id, slug, title, tool_platform, status, last_verified_at,
+      contributor_name, contributor_website,
       process:processes (
         slug, name,
         phase:phases ( slug, name )
@@ -93,6 +94,8 @@ export async function getAutomationBySlug(
     title: data.title,
     tool_platform: data.tool_platform,
     last_verified_at: data.last_verified_at,
+    contributor_name: data.contributor_name,
+    contributor_website: data.contributor_website,
     process: {
       slug: processRow?.slug ?? "",
       name: processRow?.name ?? "",

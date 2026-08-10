@@ -121,7 +121,12 @@ export default async function AutomationPage({
     <div className="mx-auto w-full max-w-3xl px-6 py-16">
       {/* Header */}
       <p className="font-mono text-xs uppercase tracking-widest text-warm-grey">
-        <Link href="/" className="hover:text-pistachio">
+        <Link
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-pistachio"
+        >
           {automation.process.phase.name}
         </Link>{" "}
         &rsaquo; {automation.process.name}
@@ -166,6 +171,20 @@ export default async function AutomationPage({
           />
         )}
       </div>
+
+      <p className="mt-4 text-sm text-soft-charcoal">
+        <span className="font-mono text-[11px] uppercase tracking-widest text-warm-grey">
+          Author
+        </span>{" "}
+        <a
+          href={automation.contributor_website || "https://stacknarrative.com"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-pistachio hover:underline"
+        >
+          {automation.contributor_name || "StackNarrative Team"}
+        </a>
+      </p>
 
       {!guide && (
         <p className="mt-10 italic text-warm-grey">

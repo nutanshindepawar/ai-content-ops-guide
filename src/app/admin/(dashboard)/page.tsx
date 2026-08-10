@@ -18,6 +18,12 @@ export default function AdminHome() {
           Manage Automations
         </Link>
         <Link
+          href="/admin/resources"
+          className="inline-block border border-light-grey-bg px-4 py-2 text-sm text-premium-black hover:border-pistachio"
+        >
+          Manage Resources
+        </Link>
+        <Link
           href="/admin/taxonomy"
           className="inline-block border border-light-grey-bg px-4 py-2 text-sm text-premium-black hover:border-pistachio"
         >
