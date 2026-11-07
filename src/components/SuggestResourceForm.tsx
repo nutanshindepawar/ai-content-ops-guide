@@ -107,7 +107,9 @@ export function SuggestResourceForm({ phases }: { phases: PhaseOption[] }) {
     setSubmitting(true);
     setError(null);
 
-    const result = await suggestResource({
+    let result: Awaited<ReturnType<typeof suggestResource>>;
+    try {
+      result = await suggestResource({
       resourceType,
       title,
       description,
@@ -138,7 +140,12 @@ export function SuggestResourceForm({ phases }: { phases: PhaseOption[] }) {
       troubleshooting,
       proposedPhaseName,
       proposedProcessName,
-    });
+      });
+    } catch {
+      setSubmitting(false);
+      setError("We couldn't reach the server — this page may be out of date. Please refresh the page and try again (your entries on this page will be cleared).");
+      return;
+    }
 
     setSubmitting(false);
 
