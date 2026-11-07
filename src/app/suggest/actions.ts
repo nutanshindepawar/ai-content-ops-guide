@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { notifyNewContribution } from "@/lib/notify";
 import { BASE_PATH } from "@/lib/base-path";
@@ -120,9 +121,14 @@ export async function suggestResource(
       .toString(36)
       .slice(2, 6)}`;
 
-    const { data: automation, error: automationError } = await supabase
+    // Generate the id here instead of using .select() on the insert: the
+    // read-back would be blocked by RLS (pending rows are invisible to anon).
+    const automationId = randomUUID();
+
+    const { error: automationError } = await supabase
       .from("automations")
       .insert({
+        id: automationId,
         process_id: input.processId,
         slug,
         title: input.title.trim(),
@@ -131,19 +137,14 @@ export async function suggestResource(
         contributor_name: input.contributorName || null,
         contributor_website: input.contributorWebsite || null,
         review_notes: buildProposalNote(input),
-      })
-      .select("id")
-      .single();
+      });
 
-    if (automationError || !automation) {
-      return {
-        ok: false,
-        error: automationError?.message ?? "Failed to submit.",
-      };
+    if (automationError) {
+      return { ok: false, error: automationError.message };
     }
 
     const { error: guideError } = await supabase.from("guides").insert({
-      automation_id: automation.id,
+      automation_id: automationId,
       what_it_does: input.description || null,
       why_useful: input.whyUseful || null,
       who_for: input.whoFor || null,
@@ -170,7 +171,7 @@ export async function suggestResource(
 
     if (input.url) {
       await supabase.from("resources").insert({
-        automation_id: automation.id,
+        automation_id: automationId,
         type: "tool",
         title: `${input.title.trim()} — submitted link`,
         url: input.url,
@@ -181,7 +182,7 @@ export async function suggestResource(
     }
 
     await supabase.from("contribution_contacts").insert({
-      automation_id: automation.id,
+      automation_id: automationId,
       email: input.contributorEmail,
       phone: input.contributorPhone,
     });
@@ -212,9 +213,12 @@ export async function suggestResource(
     .filter(Boolean)
     .join("\n\n");
 
-  const { data: resource, error: resourceError } = await supabase
+  const resourceId = randomUUID();
+
+  const { error: resourceError } = await supabase
     .from("resources")
     .insert({
+      id: resourceId,
       process_id: input.processId,
       type: dbType,
       title: input.title.trim(),
@@ -223,16 +227,14 @@ export async function suggestResource(
       status: "pending",
       contributor_name: input.contributorName || null,
       contributor_website: input.contributorWebsite || null,
-    })
-    .select("id")
-    .single();
+    });
 
-  if (resourceError || !resource) {
-    return { ok: false, error: resourceError?.message ?? "Failed to submit." };
+  if (resourceError) {
+    return { ok: false, error: resourceError.message };
   }
 
   await supabase.from("contribution_contacts").insert({
-    resource_id: resource.id,
+    resource_id: resourceId,
     email: input.contributorEmail,
     phone: input.contributorPhone,
   });
