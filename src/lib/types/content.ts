@@ -5,6 +5,15 @@ export type AutomationCard = {
   tool_platform: string | null;
 };
 
+export type ProcessResource = {
+  id: string;
+  type: string;
+  title: string;
+  description: string | null;
+  url: string | null;
+  contributor_name: string | null;
+};
+
 export type ProcessWithAutomations = {
   id: string;
   slug: string;
@@ -13,6 +22,7 @@ export type ProcessWithAutomations = {
   description: string | null;
   often_overlooked: string | null;
   automations: AutomationCard[];
+  resources: ProcessResource[];
 };
 
 export type PhaseWithProcesses = {

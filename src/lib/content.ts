@@ -14,6 +14,9 @@ export async function getPhaseTree(): Promise<PhaseWithProcesses[]> {
         id, slug, number, name, description, often_overlooked,
         automations:automations (
           id, slug, title, tool_platform, status
+        ),
+        resources:resources!resources_process_id_fkey (
+          id, type, title, description, url, contributor_name, status, created_at
         )
       )
     `
@@ -35,6 +38,9 @@ export async function getPhaseTree(): Promise<PhaseWithProcesses[]> {
         automations: (process.automations ?? []).filter(
           (a) => a.status === "published"
         ),
+        resources: (process.resources ?? [])
+          .filter((r) => r.status === "published")
+          .sort((a, b) => a.created_at.localeCompare(b.created_at)),
       })),
   }));
 }

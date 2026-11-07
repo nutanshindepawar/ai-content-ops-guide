@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, GitBranch, Lightbulb, Star } from "lucide-react";
 import type { PhaseWithProcesses } from "@/lib/types/content";
 import { PHASE_ICONS, PHASE_QUICK_TIPS } from "@/lib/phase-ui-meta";
+import { safeHref } from "@/lib/safe-url";
 
 function PhaseCard({
   phase,
@@ -84,11 +85,12 @@ function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][n
       )}
 
       <div className="mt-4">
-        {process.automations.length === 0 ? (
+        {process.automations.length === 0 && process.resources.length === 0 ? (
           <p className="font-mono text-xs uppercase tracking-widest text-warm-grey">
-            No automations published yet
+            Nothing published yet
           </p>
-        ) : (
+        ) : null}
+        {process.automations.length > 0 && (
           <ul className="grid gap-2 sm:grid-cols-2">
             {process.automations.map((automation) => (
               <li key={automation.id}>
@@ -108,6 +110,45 @@ function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][n
               </li>
             ))}
           </ul>
+        )}
+        {process.resources.length > 0 && (
+          <div className="mt-4">
+            <p className="font-mono text-[11px] uppercase tracking-widest text-warm-grey">
+              Tools &amp; resources
+            </p>
+            <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+              {process.resources.map((resource) => {
+                const href = safeHref(resource.url);
+                return (
+                  <li
+                    key={resource.id}
+                    className="rounded-lg border border-warm-grey/20 bg-white px-3 py-2 text-sm"
+                  >
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-pistachio">
+                      {resource.type.replace("_", " ")}
+                    </span>
+                    <p className="text-premium-black">
+                      {href ? (
+                        <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                          {resource.title}
+                        </a>
+                      ) : (
+                        resource.title
+                      )}
+                    </p>
+                    {resource.description && (
+                      <p className="mt-1 whitespace-pre-line text-xs text-soft-charcoal">
+                        {resource.description}
+                      </p>
+                    )}
+                    {resource.contributor_name && (
+                      <p className="mt-1 text-[11px] text-warm-grey">by {resource.contributor_name}</p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         )}
       </div>
     </div>

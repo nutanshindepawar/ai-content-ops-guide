@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getAutomationBySlug } from "@/lib/content";
 import { SafeHtml } from "@/components/SafeHtml";
+import { safeHref } from "@/lib/safe-url";
 
 export const revalidate = 60;
 
@@ -177,7 +178,7 @@ export default async function AutomationPage({
           Author
         </span>{" "}
         <a
-          href={automation.contributor_website || "https://stacknarrative.com"}
+          href={safeHref(automation.contributor_website) || "https://stacknarrative.com"}
           target="_blank"
           rel="noopener noreferrer"
           className="text-pistachio hover:underline"
@@ -272,9 +273,9 @@ export default async function AutomationPage({
                     </pre>
                   </div>
                 )}
-                {guide.template_url && (
+                {safeHref(guide.template_url) && (
                   <a
-                    href={guide.template_url}
+                    href={safeHref(guide.template_url)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-block border border-pistachio px-4 py-2 text-sm text-premium-black hover:bg-pistachio/10"
@@ -301,15 +302,15 @@ export default async function AutomationPage({
                     {resource.type === "video" && resource.url ? (
                       <div className="mt-3 aspect-video w-full">
                         <iframe
-                          src={resource.url}
+                          src={safeHref(resource.url) ?? ""}
                           className="h-full w-full"
                           allowFullScreen
                         />
                       </div>
                     ) : (
-                      resource.url && (
+                      safeHref(resource.url) && (
                         <a
-                          href={resource.url}
+                          href={safeHref(resource.url)!}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="mt-2 inline-block text-sm text-pistachio underline"
