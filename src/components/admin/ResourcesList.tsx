@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { ReviewActions } from "@/components/admin/ReviewActions";
 import { setResourceStatus } from "@/app/admin/(dashboard)/resources/actions";
 
 type Row = {
@@ -27,16 +26,6 @@ function statusColor(status: string) {
 }
 
 function ResourceRow({ row }: { row: Row }) {
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-
-  async function handleStatus(status: "published" | "rejected") {
-    setBusy(true);
-    await setResourceStatus(row.id, status);
-    setBusy(false);
-    router.refresh();
-  }
-
   return (
     <div className="py-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -92,24 +81,9 @@ function ResourceRow({ row }: { row: Row }) {
       )}
 
       {row.status === "pending" && (
-        <div className="mt-3 flex gap-2">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => handleStatus("published")}
-            className="border border-pistachio px-3 py-1 text-xs uppercase tracking-widest text-premium-black hover:bg-pistachio/10 disabled:opacity-50"
-          >
-            Publish
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => handleStatus("rejected")}
-            className="border border-warm-grey/30 px-3 py-1 text-xs uppercase tracking-widest text-warm-grey hover:border-red-600 hover:text-red-600 disabled:opacity-50"
-          >
-            Reject
-          </button>
-        </div>
+        <ReviewActions
+          onDecide={(status, reason) => setResourceStatus(row.id, status, reason)}
+        />
       )}
     </div>
   );

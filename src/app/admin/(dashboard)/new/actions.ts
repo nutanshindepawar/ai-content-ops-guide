@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentEditorOrAdmin } from "@/lib/auth";
 import { BASE_PATH } from "@/lib/base-path";
+import {
+  emailContributorApproved,
+  emailContributorRejected,
+  guideUrl,
+} from "@/lib/notify";
 
 function slugify(input: string): string {
   return input
@@ -237,20 +242,43 @@ export async function updateAutomation(
   return { ok: true, slug: automation.slug };
 }
 
+export type ReviewResult =
+  | { ok: true; email: "sent" | "failed" | "no-contact" }
+  | { ok: false; error: string };
+
 export async function setAutomationStatus(
   automationId: string,
-  status: "published" | "rejected"
-): Promise<{ ok: true } | { ok: false; error: string }> {
+  status: "published" | "rejected",
+  reason?: string
+): Promise<ReviewResult> {
   const user = await getCurrentEditorOrAdmin();
   if (!user) {
     return { ok: false, error: "Not signed in as an Editor/Admin." };
   }
+  const rejectionReason = (reason ?? "").trim();
+  if (status === "rejected" && !rejectionReason) {
+    return { ok: false, error: "A reason for rejection is required." };
+  }
 
   const supabase = await createServerSupabaseClient();
+
+  const { data: before } = await supabase
+    .from("automations")
+    .select("title, slug, contributor_name, contributor_website")
+    .eq("id", automationId)
+    .single();
+  const { data: contact } = await supabase
+    .from("contribution_contacts")
+    .select("email")
+    .eq("automation_id", automationId)
+    .limit(1)
+    .maybeSingle();
+
   const { data, error } = await supabase
     .from("automations")
     .update({
       status,
+      rejection_reason: status === "rejected" ? rejectionReason : null,
       reviewed_by: user.id,
       reviewed_at: new Date().toISOString(),
     })
@@ -262,9 +290,38 @@ export async function setAutomationStatus(
     return { ok: false, error: error?.message ?? "Failed to update status." };
   }
 
+  // The contributor's attached link (created with the submission) follows the
+  // automation's decision.
+  await supabase
+    .from("resources")
+    .update({ status, reviewed_by: user.id, reviewed_at: new Date().toISOString() })
+    .eq("automation_id", automationId)
+    .eq("status", "pending");
+
   revalidatePath(`${BASE_PATH}`);
   revalidatePath(`${BASE_PATH}/automation/${data.slug}`);
   revalidatePath(`${BASE_PATH}/admin/automations`);
 
-  return { ok: true };
+  if (!contact?.email || !before) return { ok: true, email: "no-contact" };
+
+  const name = before.contributor_name || "there";
+  const sent =
+    status === "published"
+      ? await emailContributorApproved({
+          to: contact.email,
+          name,
+          title: before.title,
+          kind: "automation",
+          link: `${guideUrl}/automation/${data.slug}`,
+          linkIsOwnPage: true,
+          website: before.contributor_website,
+        })
+      : await emailContributorRejected({
+          to: contact.email,
+          name,
+          title: before.title,
+          reason: rejectionReason,
+        });
+
+  return { ok: true, email: sent ? "sent" : "failed" };
 }
