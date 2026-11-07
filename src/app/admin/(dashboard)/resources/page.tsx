@@ -8,7 +8,7 @@ export default async function AdminResourcesPage() {
     .select(
       `
       id, title, type, status, description, url, contributor_name,
-      contributor_website,
+      contributor_website, created_at, reviewed_at, rejection_reason,
       process:processes ( name, phase:phases ( name ) ),
       automation:automations ( title ),
       contact:contribution_contacts ( email, phone )
@@ -42,6 +42,9 @@ export default async function AdminResourcesPage() {
       phaseName: phase?.name ?? null,
       processName: process?.name ?? null,
       automationTitle: automation?.title ?? null,
+      createdAt: resource.created_at,
+      reviewedAt: resource.reviewed_at,
+      rejectionReason: resource.rejection_reason,
       contributorName: resource.contributor_name,
       contributorWebsite: resource.contributor_website,
       contactEmail: contact?.email ?? null,

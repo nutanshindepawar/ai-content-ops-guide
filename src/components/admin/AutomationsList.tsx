@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { StatusFilter, SubmissionHistory, type StatusFilterValue } from "@/components/admin/StatusFilter";
 import { ReviewActions } from "@/components/admin/ReviewActions";
 import { setAutomationStatus } from "@/app/admin/(dashboard)/new/actions";
 
@@ -14,6 +16,9 @@ type Row = {
   contributorName: string | null;
   contributorWebsite: string | null;
   reviewNotes: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
 };
@@ -67,6 +72,13 @@ function AutomationRow({ row }: { row: Row }) {
         </p>
       )}
 
+      <SubmissionHistory
+        createdAt={row.createdAt}
+        reviewedAt={row.reviewedAt}
+        status={row.status}
+        rejectionReason={row.rejectionReason}
+      />
+
       {row.reviewNotes && (
         <p className="mt-1 text-xs italic text-warm-grey">{row.reviewNotes}</p>
       )}
@@ -81,11 +93,20 @@ function AutomationRow({ row }: { row: Row }) {
 }
 
 export function AutomationsList({ rows }: { rows: Row[] }) {
+  const [filter, setFilter] = useState<StatusFilterValue>("all");
+  const counts: Record<string, number> = { all: rows.length };
+  for (const r of rows) counts[r.status] = (counts[r.status] ?? 0) + 1;
+  const shown = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+
   return (
-    <div className="divide-y divide-light-grey-bg border-y border-light-grey-bg">
-      {rows.map((row) => (
-        <AutomationRow key={row.id} row={row} />
-      ))}
+    <div>
+      <StatusFilter value={filter} onChange={setFilter} counts={counts} />
+      <div className="mt-4 divide-y divide-light-grey-bg border-y border-light-grey-bg">
+        {shown.map((row) => (
+          <AutomationRow key={row.id} row={row} />
+        ))}
+        {shown.length === 0 && <p className="py-6 text-sm text-warm-grey">Nothing here.</p>}
+      </div>
     </div>
   );
 }

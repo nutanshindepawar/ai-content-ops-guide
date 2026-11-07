@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
+import { StatusFilter, SubmissionHistory, type StatusFilterValue } from "@/components/admin/StatusFilter";
 import { ReviewActions } from "@/components/admin/ReviewActions";
 import { setResourceStatus } from "@/app/admin/(dashboard)/resources/actions";
 
@@ -17,6 +20,9 @@ type Row = {
   contributorWebsite: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
 };
 
 function statusColor(status: string) {
@@ -35,7 +41,9 @@ function ResourceRow({ row }: { row: Row }) {
             {row.phaseName && ` · ${row.phaseName} › ${row.processName}`}
             {row.automationTitle && ` · attached to "${row.automationTitle}"`}
           </p>
-          <p className="mt-1 text-premium-black">{row.title}</p>
+          <Link href={`/admin/resources/${row.id}/edit`} className="mt-1 inline-block text-premium-black underline-offset-2 hover:underline">
+            {row.title}
+          </Link>
           {row.description && (
             <p className="mt-1 text-sm text-soft-charcoal">{row.description}</p>
           )}
@@ -80,6 +88,13 @@ function ResourceRow({ row }: { row: Row }) {
         </p>
       )}
 
+      <SubmissionHistory
+        createdAt={row.createdAt}
+        reviewedAt={row.reviewedAt}
+        status={row.status}
+        rejectionReason={row.rejectionReason}
+      />
+
       {row.status === "pending" && (
         <ReviewActions
           onDecide={(status, reason) => setResourceStatus(row.id, status, reason)}
@@ -90,11 +105,20 @@ function ResourceRow({ row }: { row: Row }) {
 }
 
 export function ResourcesList({ rows }: { rows: Row[] }) {
+  const [filter, setFilter] = useState<StatusFilterValue>("all");
+  const counts: Record<string, number> = { all: rows.length };
+  for (const r of rows) counts[r.status] = (counts[r.status] ?? 0) + 1;
+  const shown = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+
   return (
-    <div className="divide-y divide-light-grey-bg border-y border-light-grey-bg">
-      {rows.map((row) => (
-        <ResourceRow key={row.id} row={row} />
-      ))}
+    <div>
+      <StatusFilter value={filter} onChange={setFilter} counts={counts} />
+      <div className="mt-4 divide-y divide-light-grey-bg border-y border-light-grey-bg">
+        {shown.map((row) => (
+          <ResourceRow key={row.id} row={row} />
+        ))}
+        {shown.length === 0 && <p className="py-6 text-sm text-warm-grey">Nothing here.</p>}
+      </div>
     </div>
   );
 }

@@ -9,7 +9,7 @@ export default async function AdminAutomationsPage() {
     .select(
       `
       id, slug, title, status, tool_platform, contributor_name,
-      contributor_website, review_notes,
+      contributor_website, review_notes, created_at, reviewed_at, rejection_reason,
       process:processes ( name, phase:phases ( name ) ),
       contact:contribution_contacts ( email, phone )
     `
@@ -39,6 +39,9 @@ export default async function AdminAutomationsPage() {
       contributorName: automation.contributor_name,
       contributorWebsite: automation.contributor_website,
       reviewNotes: automation.review_notes,
+      createdAt: automation.created_at,
+      reviewedAt: automation.reviewed_at,
+      rejectionReason: automation.rejection_reason,
       contactEmail: contact?.email ?? null,
       contactPhone: contact?.phone ?? null,
     };

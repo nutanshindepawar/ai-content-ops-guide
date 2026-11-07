@@ -91,3 +91,43 @@ export async function setResourceStatus(
 
   return { ok: true, email: sent ? "sent" : "failed" };
 }
+
+export async function updateResource(
+  resourceId: string,
+  input: {
+    title: string;
+    type: string;
+    description: string;
+    url: string;
+    process_id: string | null;
+    contributor_name: string;
+    contributor_website: string;
+  }
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentEditorOrAdmin();
+  if (!user) {
+    return { ok: false, error: "Not signed in as an Editor/Admin." };
+  }
+  if (!input.title.trim()) {
+    return { ok: false, error: "Title is required." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const patch: Record<string, string | null> = {
+    title: input.title.trim(),
+    type: input.type,
+    description: input.description.trim() || null,
+    url: input.url.trim() || null,
+    contributor_name: input.contributor_name.trim() || null,
+    contributor_website: input.contributor_website.trim() || null,
+  };
+  // Resources attached to an automation have no process of their own.
+  if (input.process_id) patch.process_id = input.process_id;
+
+  const { error } = await supabase.from("resources").update(patch).eq("id", resourceId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`${BASE_PATH}`);
+  revalidatePath(`${BASE_PATH}/admin/resources`);
+  return { ok: true };
+}
