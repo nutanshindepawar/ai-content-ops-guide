@@ -128,22 +128,36 @@ function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][n
                       {resource.type.replace("_", " ")}
                     </span>
                     <p className="text-premium-black">
-                      {href ? (
-                        <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                          {resource.title}
-                        </a>
-                      ) : (
-                        resource.title
-                      )}
+                      <Link
+                        href={`/resource/${resource.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        {resource.title}
+                      </Link>
                     </p>
                     {resource.description && (
                       <p className="mt-1 whitespace-pre-line text-xs text-soft-charcoal">
                         {resource.description}
                       </p>
                     )}
-                    {resource.contributor_name && (
-                      <p className="mt-1 text-[11px] text-warm-grey">by {resource.contributor_name}</p>
-                    )}
+                    <p className="mt-1 flex flex-wrap items-center gap-x-3 text-[11px] text-warm-grey">
+                      {resource.contributor_name && <span>by {resource.contributor_name}</span>}
+                      <Link
+                        href={`/resource/${resource.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-pistachio hover:underline"
+                      >
+                        Open page →
+                      </Link>
+                      {href && (
+                        <a href={href} target="_blank" rel="noopener noreferrer" className="text-pistachio hover:underline">
+                          Visit link ↗
+                        </a>
+                      )}
+                    </p>
                   </li>
                 );
               })}

@@ -21,6 +21,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   );
 
+  const { data: resources } = await supabase
+    .from("resources")
+    .select("slug, updated_at")
+    .eq("status", "published");
+
+  const resourceEntries: MetadataRoute.Sitemap = (resources ?? []).map((r) => ({
+    url: `${BASE_URL}/resource/${r.slug}`,
+    lastModified: r.updated_at,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
   return [
     {
       url: BASE_URL,
@@ -34,5 +46,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.3,
     },
     ...automationEntries,
+    ...resourceEntries,
   ];
 }

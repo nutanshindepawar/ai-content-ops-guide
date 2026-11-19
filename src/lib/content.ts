@@ -16,7 +16,7 @@ export async function getPhaseTree(): Promise<PhaseWithProcesses[]> {
           id, slug, title, tool_platform, status
         ),
         resources:resources!resources_process_id_fkey (
-          id, type, title, description, url, contributor_name, status, created_at
+          id, slug, type, title, description, url, contributor_name, status, created_at
         )
       )
     `
@@ -145,5 +145,66 @@ export async function getAutomationBySlug(
         (a): a is { id: string; slug: string; title: string; status: string } =>
           !!a && a.status === "published"
       ),
+  };
+}
+
+export type ResourceDetail = {
+  id: string;
+  slug: string;
+  type: string;
+  title: string;
+  description: string | null;
+  url: string | null;
+  contributor_name: string | null;
+  contributor_website: string | null;
+  created_at: string;
+  phaseName: string | null;
+  processName: string | null;
+  automation: { slug: string; title: string } | null;
+};
+
+export async function getResourceBySlug(
+  slug: string
+): Promise<ResourceDetail | null> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("resources")
+    .select(
+      `
+      id, slug, type, title, description, url, contributor_name,
+      contributor_website, created_at,
+      process:processes ( name, phase:phases ( name ) ),
+      automation:automations ( slug, title, status )
+    `
+    )
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to load resource "${slug}": ${error.message}`);
+  if (!data) return null;
+
+  const process = Array.isArray(data.process) ? data.process[0] : data.process;
+  const phase = process
+    ? Array.isArray(process.phase) ? process.phase[0] : process.phase
+    : null;
+  const automation = Array.isArray(data.automation) ? data.automation[0] : data.automation;
+
+  return {
+    id: data.id,
+    slug: data.slug,
+    type: data.type,
+    title: data.title,
+    description: data.description,
+    url: data.url,
+    contributor_name: data.contributor_name,
+    contributor_website: data.contributor_website,
+    created_at: data.created_at,
+    phaseName: phase?.name ?? null,
+    processName: process?.name ?? null,
+    automation:
+      automation && automation.status === "published"
+        ? { slug: automation.slug, title: automation.title }
+        : null,
   };
 }

@@ -7,6 +7,7 @@ export type AutomationCard = {
 
 export type ProcessResource = {
   id: string;
+  slug: string;
   type: string;
   title: string;
   description: string | null;

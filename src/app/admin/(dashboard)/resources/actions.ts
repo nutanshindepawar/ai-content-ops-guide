@@ -35,7 +35,7 @@ export async function setResourceStatus(
   const { data: before } = await supabase
     .from("resources")
     .select(
-      "title, type, contributor_name, contributor_website, process:processes ( name, phase:phases ( name ) )"
+      "title, slug, type, contributor_name, contributor_website"
     )
     .eq("id", resourceId)
     .single();
@@ -66,8 +66,6 @@ export async function setResourceStatus(
 
   if (!contact?.email || !before) return { ok: true, email: "no-contact" };
 
-  const process = Array.isArray(before.process) ? before.process[0] : before.process;
-  const phase = process ? (Array.isArray(process.phase) ? process.phase[0] : process.phase) : null;
   const name = before.contributor_name || "there";
 
   const sent =
@@ -77,9 +75,8 @@ export async function setResourceStatus(
           name,
           title: before.title,
           kind: TYPE_LABELS[before.type] ?? before.type,
-          link: guideUrl,
-          linkIsOwnPage: false,
-          location: phase && process ? `${phase.name} › ${process.name}` : undefined,
+          link: `${guideUrl}/resource/${before.slug}`,
+          linkIsOwnPage: true,
           website: before.contributor_website,
         })
       : await emailContributorRejected({
