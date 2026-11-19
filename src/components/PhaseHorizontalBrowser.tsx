@@ -188,6 +188,7 @@ function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][n
 
 function PhasePanel({ phase }: { phase: PhaseWithProcesses }) {
   const [openProcessId, setOpenProcessId] = useState<string | null>(null);
+  const openProcess = phase.processes.find((p) => p.id === openProcessId) ?? null;
   const quickTip = PHASE_QUICK_TIPS[phase.number];
 
   return (
@@ -264,11 +265,7 @@ function PhasePanel({ phase }: { phase: PhaseWithProcesses }) {
             ))}
           </div>
 
-          {openProcessId && (
-            <ProcessDetail
-              process={phase.processes.find((p) => p.id === openProcessId)!}
-            />
-          )}
+          {openProcess && <ProcessDetail key={openProcess.id} process={openProcess} />}
         </div>
       </div>
 
@@ -397,7 +394,7 @@ export function PhaseHorizontalBrowser({
         </div>
       )}
 
-      {activePhase && <PhasePanel phase={activePhase} />}
+      {activePhase && <PhasePanel key={activePhase.id} phase={activePhase} />}
     </div>
   );
 }
