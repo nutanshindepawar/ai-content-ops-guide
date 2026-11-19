@@ -62,7 +62,13 @@ function PhaseCard({
   );
 }
 
+const RESOURCES_PREVIEW = 6;
+
 function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][number] }) {
+  const [showAllResources, setShowAllResources] = useState(false);
+  const visibleResources = showAllResources
+    ? process.resources
+    : process.resources.slice(0, RESOURCES_PREVIEW);
   return (
     <div className="mt-4 border-t border-warm-grey/20 pt-4">
       {process.description ? (
@@ -117,7 +123,7 @@ function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][n
               Tools &amp; resources
             </p>
             <ul className="mt-2 grid gap-2 sm:grid-cols-2">
-              {process.resources.map((resource) => {
+              {visibleResources.map((resource) => {
                 const href = safeHref(resource.url);
                 return (
                   <li
@@ -138,8 +144,8 @@ function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][n
                       </Link>
                     </p>
                     {resource.description && (
-                      <p className="mt-1 whitespace-pre-line text-xs text-soft-charcoal">
-                        {resource.description}
+                      <p className="mt-1 line-clamp-2 text-xs text-soft-charcoal">
+                        {resource.description.split(/\n\s*\n/)[0]}
                       </p>
                     )}
                     <p className="mt-1 flex flex-wrap items-center gap-x-3 text-[11px] text-warm-grey">
@@ -162,6 +168,17 @@ function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][n
                 );
               })}
             </ul>
+            {process.resources.length > RESOURCES_PREVIEW && (
+              <button
+                type="button"
+                onClick={() => setShowAllResources((v) => !v)}
+                className="mt-3 text-xs font-medium text-pistachio hover:underline"
+              >
+                {showAllResources
+                  ? "Show fewer"
+                  : `Show all ${process.resources.length} tools & resources`}
+              </button>
+            )}
           </div>
         )}
       </div>
