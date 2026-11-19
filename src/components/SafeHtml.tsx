@@ -11,7 +11,7 @@ export function SafeHtml({
 
   return (
     <div
-      className={`prose prose-sm max-w-none ${className ?? ""}`}
+      className={`rich-content ${className ?? ""}`}
       dangerouslySetInnerHTML={{ __html: clean }}
     />
   );

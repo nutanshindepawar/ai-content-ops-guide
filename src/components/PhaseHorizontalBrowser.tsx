@@ -6,6 +6,7 @@ import { ChevronRight, GitBranch, Lightbulb, Star } from "lucide-react";
 import type { PhaseWithProcesses } from "@/lib/types/content";
 import { PHASE_ICONS, PHASE_QUICK_TIPS } from "@/lib/phase-ui-meta";
 import { safeHref } from "@/lib/safe-url";
+import { plainPreview } from "@/lib/rich-text";
 
 function PhaseCard({
   phase,
@@ -143,9 +144,9 @@ function ProcessDetail({ process }: { process: PhaseWithProcesses["processes"][n
                         {resource.title}
                       </Link>
                     </p>
-                    {resource.description && (
+                    {plainPreview(resource.description) && (
                       <p className="mt-1 line-clamp-2 text-xs text-soft-charcoal">
-                        {resource.description.split(/\n\s*\n/)[0]}
+                        {plainPreview(resource.description)}
                       </p>
                     )}
                     <p className="mt-1 flex flex-wrap items-center gap-x-3 text-[11px] text-warm-grey">

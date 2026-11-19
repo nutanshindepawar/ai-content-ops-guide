@@ -48,13 +48,25 @@ function Toolbar({ editor }: { editor: Editor }) {
         I
       </ToolbarButton>
       <ToolbarButton
-        label="Heading"
-        active={editor.isActive("heading", { level: 3 })}
-        onClick={() =>
-          editor.chain().focus().toggleHeading({ level: 3 }).run()
-        }
+        label="Underline"
+        active={editor.isActive("underline")}
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
       >
-        H
+        U
+      </ToolbarButton>
+      <ToolbarButton
+        label="Heading"
+        active={editor.isActive("heading", { level: 2 })}
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+      >
+        H2
+      </ToolbarButton>
+      <ToolbarButton
+        label="Subheading"
+        active={editor.isActive("heading", { level: 3 })}
+        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+      >
+        H3
       </ToolbarButton>
       <ToolbarButton
         label="Bullet list"
@@ -97,7 +109,7 @@ export function RichTextField({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none min-h-[100px] px-3 py-2 text-sm text-premium-black outline-none",
+          "rich-content min-h-[140px] px-3 py-2 text-sm text-premium-black outline-none",
         "data-placeholder": placeholder ?? "",
       },
     },

@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { notifyNewContribution } from "@/lib/notify";
 import { BASE_PATH } from "@/lib/base-path";
+import { isEmptyHtml } from "@/lib/rich-text";
 
 function slugify(input: string): string {
   return input
@@ -145,7 +146,7 @@ export async function suggestResource(
 
     const { error: guideError } = await supabase.from("guides").insert({
       automation_id: automationId,
-      what_it_does: input.description || null,
+      what_it_does: isEmptyHtml(input.description) ? null : input.description,
       why_useful: input.whyUseful || null,
       who_for: input.whoFor || null,
       difficulty: input.difficulty || null,
@@ -206,12 +207,16 @@ export async function suggestResource(
   }
 
   const description = [
-    input.description,
-    input.keyFeatures ? `Key features / specs: ${input.keyFeatures}` : "",
-    input.howItWorks ? `How it works: ${input.howItWorks}` : "",
+    isEmptyHtml(input.description) ? "" : input.description,
+    isEmptyHtml(input.keyFeatures)
+      ? ""
+      : `<h3>Key features / specs</h3>${input.keyFeatures}`,
+    isEmptyHtml(input.howItWorks)
+      ? ""
+      : `<h3>How it works</h3>${input.howItWorks}`,
   ]
     .filter(Boolean)
-    .join("\n\n");
+    .join("");
 
   const resourceId = randomUUID();
 

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getResourceBySlug } from "@/lib/content";
 import { safeHref } from "@/lib/safe-url";
+import { SafeHtml } from "@/components/SafeHtml";
+import { plainPreview, toRichHtml } from "@/lib/rich-text";
 
 export const revalidate = 60;
 
@@ -29,7 +31,7 @@ export async function generateMetadata({
   if (!resource) return { title: "Not found | StackNarrative" };
 
   const title = `${resource.title} | B2B AI Content Operations Guide`;
-  const description = (resource.description ?? `${resource.title} — a community-contributed ${TYPE_LABELS[resource.type] ?? "resource"} from the B2B AI Content Operations Guide.`)
+  const description = (plainPreview(resource.description) || `${resource.title} — a community-contributed ${TYPE_LABELS[resource.type] ?? "resource"} from the B2B AI Content Operations Guide.`)
     .replace(/\s+/g, " ")
     .slice(0, 160);
 
@@ -97,9 +99,7 @@ export default async function ResourcePage({
       )}
 
       {resource.description && (
-        <div className="mt-10 whitespace-pre-line text-soft-charcoal">
-          {resource.description}
-        </div>
+        <SafeHtml html={toRichHtml(resource.description)} className="mt-10 text-soft-charcoal" />
       )}
 
       {isVideo && (

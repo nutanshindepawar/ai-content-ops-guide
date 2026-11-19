@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { plainPreview } from "@/lib/rich-text";
 import { useState } from "react";
 import { StatusFilter, SubmissionHistory, type StatusFilterValue } from "@/components/admin/StatusFilter";
 import { ReviewActions } from "@/components/admin/ReviewActions";
@@ -45,7 +46,7 @@ function ResourceRow({ row }: { row: Row }) {
             {row.title}
           </Link>
           {row.description && (
-            <p className="mt-1 text-sm text-soft-charcoal">{row.description}</p>
+            <p className="mt-1 line-clamp-3 text-sm text-soft-charcoal">{plainPreview(row.description)}</p>
           )}
           {row.url && (
             <a

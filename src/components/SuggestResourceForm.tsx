@@ -194,21 +194,12 @@ export function SuggestResourceForm({ phases }: { phases: PhaseOption[] }) {
       </Field>
 
       <Field label={isAutomation ? "What it does" : "Description"}>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className={`${inputClass} min-h-[80px]`}
-        />
+        <RichTextField value={description} onChange={setDescription} />
       </Field>
 
       {!isAutomation && (
         <Field label="Key features / specs">
-          <textarea
-            value={keyFeatures}
-            onChange={(e) => setKeyFeatures(e.target.value)}
-            placeholder="What can it do? Any limits, pricing tier, or requirements a reader should know?"
-            className={`${inputClass} min-h-[80px]`}
-          />
+          <RichTextField value={keyFeatures} onChange={setKeyFeatures} />
         </Field>
       )}
 
@@ -442,11 +433,7 @@ export function SuggestResourceForm({ phases }: { phases: PhaseOption[] }) {
 
       {!isAutomation && (
         <Field label="How it works">
-          <textarea
-            value={howItWorks}
-            onChange={(e) => setHowItWorks(e.target.value)}
-            className={`${inputClass} min-h-[100px]`}
-          />
+          <RichTextField value={howItWorks} onChange={setHowItWorks} />
         </Field>
       )}
 

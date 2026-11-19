@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { RichTextField } from "@/components/admin/RichTextField";
+import { toRichHtml } from "@/lib/rich-text";
 import { updateResource } from "@/app/admin/(dashboard)/resources/actions";
 
 const TYPES = [
@@ -45,7 +47,7 @@ export function ResourceEditForm({
   const router = useRouter();
   const [title, setTitle] = useState(resource.title);
   const [type, setType] = useState(resource.type);
-  const [description, setDescription] = useState(resource.description ?? "");
+  const [description, setDescription] = useState(toRichHtml(resource.description));
   const [url, setUrl] = useState(resource.url ?? "");
   const [processId, setProcessId] = useState(resource.process_id ?? "");
   const [phaseId, setPhaseId] = useState(
@@ -93,7 +95,7 @@ export function ResourceEditForm({
         </select>
       </Field>
       <Field label="Description">
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} className={`${inputClass} min-h-[120px]`} />
+        <RichTextField value={description} onChange={setDescription} />
       </Field>
       <Field label="URL">
         <input value={url} onChange={(e) => setUrl(e.target.value)} className={inputClass} />
