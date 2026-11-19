@@ -8,6 +8,7 @@ const EMAIL_NOTES: Record<string, string> = {
   sent: "Email sent to the contributor.",
   failed: "Saved, but the email to the contributor could not be sent.",
   "no-contact": "Saved. No contributor email on file, so no email was sent.",
+  skipped: "Saved. No email sent (this was not a new submission).",
 };
 
 export function ReviewActions({

@@ -35,7 +35,7 @@ export async function setResourceStatus(
   const { data: before } = await supabase
     .from("resources")
     .select(
-      "title, slug, type, contributor_name, contributor_website"
+      "title, slug, type, status, contributor_name, contributor_website"
     )
     .eq("id", resourceId)
     .single();
@@ -64,6 +64,8 @@ export async function setResourceStatus(
   revalidatePath(`${BASE_PATH}/admin/resources`);
   revalidatePath(`${BASE_PATH}/automation`);
 
+  // Only brand-new submissions get an email; republishing does not.
+  if (before?.status !== "pending") return { ok: true, email: "skipped" };
   if (!contact?.email || !before) return { ok: true, email: "no-contact" };
 
   const name = before.contributor_name || "there";
@@ -125,6 +127,37 @@ export async function updateResource(
   if (error) return { ok: false, error: error.message };
 
   revalidatePath(`${BASE_PATH}`);
+  revalidatePath(`${BASE_PATH}/admin/resources`);
+  return { ok: true };
+}
+
+export async function unpublishResource(
+  resourceId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentEditorOrAdmin();
+  if (!user) {
+    return { ok: false, error: "Not signed in as an Editor/Admin." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("resources")
+    .update({
+      status: "unpublished",
+      reviewed_by: user.id,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", resourceId)
+    .eq("status", "published")
+    .select("slug")
+    .single();
+
+  if (error || !data) {
+    return { ok: false, error: error?.message ?? "Could not unpublish." };
+  }
+
+  revalidatePath(`${BASE_PATH}`);
+  revalidatePath(`${BASE_PATH}/resource/${data.slug}`);
   revalidatePath(`${BASE_PATH}/admin/resources`);
   return { ok: true };
 }

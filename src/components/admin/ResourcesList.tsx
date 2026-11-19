@@ -5,7 +5,8 @@ import { plainPreview } from "@/lib/rich-text";
 import { useState } from "react";
 import { StatusFilter, SubmissionHistory, type StatusFilterValue } from "@/components/admin/StatusFilter";
 import { ReviewActions } from "@/components/admin/ReviewActions";
-import { setResourceStatus } from "@/app/admin/(dashboard)/resources/actions";
+import { PublishedActions } from "@/components/admin/PublishedActions";
+import { setResourceStatus, unpublishResource } from "@/app/admin/(dashboard)/resources/actions";
 
 type Row = {
   id: string;
@@ -99,6 +100,16 @@ function ResourceRow({ row }: { row: Row }) {
       {row.status === "pending" && (
         <ReviewActions
           onDecide={(status, reason) => setResourceStatus(row.id, status, reason)}
+        />
+      )}
+      {(row.status === "published" || row.status === "unpublished") && (
+        <PublishedActions
+          status={row.status}
+          onUnpublish={() => unpublishResource(row.id)}
+          onRepublish={async () => {
+            const r = await setResourceStatus(row.id, "published");
+            return r.ok ? { ok: true as const } : r;
+          }}
         />
       )}
     </div>

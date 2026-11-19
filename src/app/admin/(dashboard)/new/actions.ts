@@ -243,7 +243,7 @@ export async function updateAutomation(
 }
 
 export type ReviewResult =
-  | { ok: true; email: "sent" | "failed" | "no-contact" }
+  | { ok: true; email: "sent" | "failed" | "no-contact" | "skipped" }
   | { ok: false; error: string };
 
 export async function setAutomationStatus(
@@ -264,7 +264,7 @@ export async function setAutomationStatus(
 
   const { data: before } = await supabase
     .from("automations")
-    .select("title, slug, contributor_name, contributor_website")
+    .select("title, slug, status, contributor_name, contributor_website")
     .eq("id", automationId)
     .single();
   const { data: contact } = await supabase
@@ -296,12 +296,14 @@ export async function setAutomationStatus(
     .from("resources")
     .update({ status, reviewed_by: user.id, reviewed_at: new Date().toISOString() })
     .eq("automation_id", automationId)
-    .eq("status", "pending");
+    .in("status", status === "published" ? ["pending", "unpublished"] : ["pending"]);
 
   revalidatePath(`${BASE_PATH}`);
   revalidatePath(`${BASE_PATH}/automation/${data.slug}`);
   revalidatePath(`${BASE_PATH}/admin/automations`);
 
+  // Only brand-new submissions get an email; republishing does not.
+  if (before?.status !== "pending") return { ok: true, email: "skipped" };
   if (!contact?.email || !before) return { ok: true, email: "no-contact" };
 
   const name = before.contributor_name || "there";
@@ -324,4 +326,41 @@ export async function setAutomationStatus(
         });
 
   return { ok: true, email: sent ? "sent" : "failed" };
+}
+
+// Hides an automation (and its attached links) from the public site while
+// keeping the record, history and contributor details.
+export async function unpublishAutomation(
+  automationId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const user = await getCurrentEditorOrAdmin();
+  if (!user) {
+    return { ok: false, error: "Not signed in as an Editor/Admin." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("automations")
+    .update({ status: "unpublished", reviewed_by: user.id, reviewed_at: now })
+    .eq("id", automationId)
+    .eq("status", "published")
+    .select("slug")
+    .single();
+
+  if (error || !data) {
+    return { ok: false, error: error?.message ?? "Could not unpublish." };
+  }
+
+  await supabase
+    .from("resources")
+    .update({ status: "unpublished", reviewed_by: user.id, reviewed_at: now })
+    .eq("automation_id", automationId)
+    .eq("status", "published");
+
+  revalidatePath(`${BASE_PATH}`);
+  revalidatePath(`${BASE_PATH}/automation/${data.slug}`);
+  revalidatePath(`${BASE_PATH}/admin/automations`);
+  return { ok: true };
 }

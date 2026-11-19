@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { StatusFilter, SubmissionHistory, type StatusFilterValue } from "@/components/admin/StatusFilter";
 import { ReviewActions } from "@/components/admin/ReviewActions";
-import { setAutomationStatus } from "@/app/admin/(dashboard)/new/actions";
+import { PublishedActions } from "@/components/admin/PublishedActions";
+import { setAutomationStatus, unpublishAutomation } from "@/app/admin/(dashboard)/new/actions";
 
 type Row = {
   id: string;
@@ -86,6 +87,16 @@ function AutomationRow({ row }: { row: Row }) {
       {row.status === "pending" && (
         <ReviewActions
           onDecide={(status, reason) => setAutomationStatus(row.id, status, reason)}
+        />
+      )}
+      {(row.status === "published" || row.status === "unpublished") && (
+        <PublishedActions
+          status={row.status}
+          onUnpublish={() => unpublishAutomation(row.id)}
+          onRepublish={async () => {
+            const r = await setAutomationStatus(row.id, "published");
+            return r.ok ? { ok: true as const } : r;
+          }}
         />
       )}
     </div>

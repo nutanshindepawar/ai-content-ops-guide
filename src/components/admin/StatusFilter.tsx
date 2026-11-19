@@ -1,6 +1,6 @@
 "use client";
 
-const STATUSES = ["all", "pending", "published", "rejected"] as const;
+const STATUSES = ["all", "pending", "published", "unpublished", "rejected"] as const;
 export type StatusFilterValue = (typeof STATUSES)[number];
 
 export function StatusFilter({
